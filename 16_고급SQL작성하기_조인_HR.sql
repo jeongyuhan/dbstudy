@@ -6,7 +6,7 @@ SELECT
      , e.department_id
      , salary 
   FROM employees e INNER JOIN departments d -- employees 테이블이 driving 테이블, departments 테이블이 driven테이블
-    ON e.department_id = d.department_id -- 조인 조건
+    ON e.department_id = d.department_id -- 조인 조건 -- 인덱스가 없는 e.department_id를 기준으로 검색하므로 좋지 않다.(e.department_id는 FK이므로 인덱스가 존재하지 않는다.)
  WHERE d.location_id = 1700; -- 일반 조건
 
 SELECT 
@@ -26,7 +26,7 @@ SELECT
      , e.last_name
      , e.job_id
   FROM departments d INNER JOIN employees e -- departments 테이블이 driving 테이블, employees 테이블이 driven테이블
-    ON d.department_id = e.department_id -- 조건절의 등호(=) 왼쪽은 PK 또는 인덱스를 가진 칼럼이 좋다.
+    ON d.department_id = e.department_id -- 조건절의 등호(=) 왼쪽은 PK 또는 인덱스를 가진 칼럼이 좋다. (d.department_id는 PK이므로 인덱스가 존재한다.)
  WHERE d.department_name = 'Executive';
  
  SELECT
@@ -40,8 +40,19 @@ SELECT
 
 -- 3. 기존의 직업(job_id)을 여전히 가지고 있는 사원들의 employee_id, job_id 를 조회한다.
 -- 사용할 테이블 (employees, job_history)
-
-
+SELECT
+       e.employee_id
+     , e.job_id
+  FROM employees e INNER JOIN job_history j 
+    ON e.employee_id = j.employee_id -- 조인 조건
+ WHERE e.job_id = j.job_id; -- 일반 조건 : 기존의 직업을 여전히 가지고 있다. employees 테이블의 job_id(현재 job)와 job_history테이블의 job_id(과거 job)가 같다.
+    
+SELECT
+       e.employee_id
+     , e.job_id
+  FROM employees e, job_history j
+ WHERE e.employee_id = j.employee_id
+   AND e.job_id = j.job_id;
 
 -- 4. 각 부서별 사원수와 평균연봉을 department_name, location_id 와 함께 조회한다.
 -- 평균연봉은 소수점 2 자리까지 반올림하여 표현하고, 각 부서별 사원수의 오름차순으로 조회한다.
