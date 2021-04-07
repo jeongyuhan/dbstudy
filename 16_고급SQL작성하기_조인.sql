@@ -144,9 +144,48 @@ SELECT
  GROUP BY d.dept_no; 
 
  
+-- 리뷰1. 모든 사원들의 name, dept_name을 조회하시오.(부서가 없는 사원은 조회하지 마시오.)
+SELECT
+       e.name
+     , d.dept_name
+  FROM department d, employee e
+ WHERE d.dept_no = e.depart; -- 내부 조인
+
+SELECT
+       e.name
+     , d.dept_name
+  FROM department d INNER JOIN employee e
+    ON d.dept_no = e.depart;
 
 
+-- 리뷰2. '서울'에서 근무하는 사원들의 emp_no, name을 조회하시오. 
+-- 조회할 emp_no와 name은 모두 employee테이블에 있지만, 
+-- 조건으로 제시된 서울 근무자는 department테이블의 location칼럼이기 때문에 join을 이용하여 처리한다.
+SELECT 
+       e.name
+     , e.emp_no
+  FROM department d, employee e
+ WHERE d.dept_no = e.depart -- 조인 조건을 먼저 작성
+   AND d.location = '서울';
 
+SELECT 
+       e.name
+     , e.emp_no
+  FROM department d INNER JOIN employee e
+    ON d.dept_no = e.depart
+ WHERE d.location = '서울';
+ 
 
+-- 리뷰3. 모든 사원의 name, dept_name을 조회하시오.(부서가 없는 사원도 조회하시오.)
+-- 일치하는 부서번호가 없는 김미나도 출력하기 위해서, 오른쪽 외부 조인으로 처리한다.
+SELECT
+       e.name
+     , d.dept_name
+  FROM department d, employee e
+ WHERE d.dept_no(+) = e.depart; -- (+)가 있는 테이블은 일치하는 정보만 조회, (+)가 없는 테이블은 전체 조회
 
-
+SELECT
+       e.name
+     , d.dept_name
+  FROM department d RIGHT OUTER JOIN employee e
+    ON d.dept_no = e.depart;
