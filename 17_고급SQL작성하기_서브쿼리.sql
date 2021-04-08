@@ -154,9 +154,3 @@ CREATE TABLE employee3
           FROM employee
          WHERE 1 = 2); -- 1 = 2 는 만족하지 않으므로 어떠한 데이터도 조회되지 않는다.
 
-         
-
-
-
-
-
