@@ -1,0 +1,298 @@
+DROP TABLE BUYS;
+DROP TABLE USERS;
+
+-- 사용자(USERS) 테이블 생성
+CREATE TABLE USERS (
+    USER_NO NUMBER,  -- 사용자번호
+    USER_ID VARCHAR2(20) NOT NULL UNIQUE,  -- 아이디
+    USER_NAME VARCHAR2(20),  -- 이름
+    USER_YEAR NUMBER(4),  -- 태어난년도
+    USER_ADDR VARCHAR2(100),  -- 주소
+    USER_MOBILE1 VARCHAR2(3),  -- 010, 011 등
+    USER_MOBILE2 VARCHAR2(8),  -- 12345678, 11111111 등
+    USER_REGDATE DATE  -- 가입일
+);
+
+-- 구매(BUYS) 테이블 생성
+CREATE TABLE BUYS (
+    BUY_NO NUMBER,  -- 구매번호
+    USER_ID VARCHAR2(20),  -- 구매자아이디
+    PROD_NAME VARCHAR2(20),  -- 제품명
+    PROD_CATEGORY VARCHAR2(20),  -- 제품카테고리
+    PROD_PRICE NUMBER,  -- 제품가격
+    BUY_AMOUNT NUMBER  -- 구매수량
+);
+
+
+1. 적절한 기본키와 외래키를 지정하시오.
+ALTER TABLE USERS ADD CONSTRAINT USERS_PK PRIMARY KEY (USER_NO);
+ALTER TABLE BUYS ADD CONSTRAINT BUYS_PK PRIMARY KEY (BUY_NO);
+ALTER TABLE BUYS ADD CONSTRAINT BUYS_USERS_FK FOREIGN KEY (USER_ID) REFERENCES USERS(USER_ID);
+
+
+2. 아래 INSERT문에서 사용되고 있는 사용자번호와 구매번호 대신 사용할 시퀀스를 생성하고 이를 INSERT문에 적용한 뒤 INSERT문을 실행하시오.
+CREATE SEQUENCE USERS_SEQ
+INCREMENT BY 1
+START WITH 1
+NOMAXVALUE
+NOMINVALUE
+NOCYCLE
+NOCACHE;
+
+CREATE SEQUENCE BUYS_SEQ
+INCREMENT BY 1
+START WITH 1001
+NOMAXVALUE
+NOMINVALUE
+NOCYCLE
+NOCACHE;
+
+
+-- USERS 테이블에 레코드(행, ROW) 삽입하기
+INSERT INTO USERS VALUES (USERS_SEQ.NEXTVAL, 'YJS', '유재석', 1972, '서울', '010', '11111111', '08/08/08');
+INSERT INTO USERS VALUES (USERS_SEQ.NEXTVAL, 'KHD', '강호동', 1970, '경북', '011', '22222222', '07/07/07');
+INSERT INTO USERS VALUES (USERS_SEQ.NEXTVAL, 'KKJ', '김국진', 1965, '서울', '019', '33333333', '09/09/09');
+INSERT INTO USERS VALUES (USERS_SEQ.NEXTVAL, 'KYM', '김용만', 1967, '서울', '010', '44444444', '15/05/05');
+INSERT INTO USERS VALUES (USERS_SEQ.NEXTVAL, 'KJD', '김제동', 1974, '경남', NULL, NULL, '13/03/03');
+INSERT INTO USERS VALUES (USERS_SEQ.NEXTVAL, 'NHS', '남희석', 1971, '충남', '016', '55555555', '14/04/04');
+INSERT INTO USERS VALUES (USERS_SEQ.NEXTVAL, 'SDY', '신동엽', 1971, '경기', NULL, NULL, '08/10/10');
+INSERT INTO USERS VALUES (USERS_SEQ.NEXTVAL, 'LHJ', '이휘재', 1972, '경기', '011', '66666666', '06/04/04');
+INSERT INTO USERS VALUES (USERS_SEQ.NEXTVAL, 'LKK', '이경규', 1960, '경남', '018', '77777777', '04/12/12');
+INSERT INTO USERS VALUES (USERS_SEQ.NEXTVAL, 'PSH', '박수홍', 1970, '서울', '010', '88888888', '12/05/05');
+
+
+-- BUYS 테이블에 레코드(행, ROW) 삽입하기
+INSERT INTO BUYS VALUES (BUYS_SEQ.NEXTVAL, 'KHD', '운동화', '신발', 30, 2);
+INSERT INTO BUYS VALUES (BUYS_SEQ.NEXTVAL, 'KHD', '노트북', '전자', 1000, 1);
+INSERT INTO BUYS VALUES (BUYS_SEQ.NEXTVAL, 'KYM', '모니터', '전자', 200, 1);
+INSERT INTO BUYS VALUES (BUYS_SEQ.NEXTVAL, 'PSH', '모니터', '전자', 200, 5);
+INSERT INTO BUYS VALUES (BUYS_SEQ.NEXTVAL, 'KHD', '청바지', '의류', 50, 3);
+INSERT INTO BUYS VALUES (BUYS_SEQ.NEXTVAL, 'PSH', '메모리', '전자', 80, 10);
+INSERT INTO BUYS VALUES (BUYS_SEQ.NEXTVAL, 'KJD', '책', '의류', 15, 5);
+INSERT INTO BUYS VALUES (BUYS_SEQ.NEXTVAL, 'LHJ', '책', '서적', 15, 2);
+INSERT INTO BUYS VALUES (BUYS_SEQ.NEXTVAL, 'LHJ', '청바지', '의류', 50, 1);
+INSERT INTO BUYS VALUES (BUYS_SEQ.NEXTVAL, 'PSH', '운동화', '신발', 30, 2);
+
+
+-- 3. 제품명이 '책'인데 제품카테고리가 '서적'이 아닌 구매 목록을 찾아서 제품카테고리를 '서적'으로 수정하시오.
+UPDATE BUYS 
+   SET PROD_CATEGORY = '서적' 
+ WHERE PROD_NAME = '책' 
+   AND PROD_CATEGORY != '서적'; 
+
+
+-- 4. 연락처1이 '011'인 사용자의 연락처1을 '010'으로 수정하시오.
+UPDATE USERS 
+   SET USER_MOBILE1 = '010' 
+ WHERE USER_MOBILE1 = '011';
+
+
+-- 5. 구매 테이블에서 사용자번호가 5인 사용자의 구매 정보를 삭제하시오.
+-- BUYS 테이블에서 사용자번호(USER_NO)를 이용해서 사용자아이디(USER_ID)를 알아낸다.
+SELECT U.USER_ID
+  FROM USERS U, BUYS B
+ WHERE U.USER_ID = B.USER_ID
+   AND U.USER_NO = 5;
+   
+DELETE
+  FROM BUYS
+ WHERE USER_ID = (SELECT U.USER_ID
+                    FROM USERS U, BUYS B
+                   WHERE U.USER_ID = B.USER_ID
+                     AND U.USER_NO = 5);
+
+-- 간단하게 푸는 방법
+DELETE 
+  FROM BUYS B
+ WHERE B.USER_ID = (SELECT U.USER_ID
+                      FROM USERS U
+                     WHERE U.USER_NO = 5); 
+
+
+-- 6. 연락처1이 없는 사용자를 조회하시오.
+SELECT USER_NO
+     , USER_ID
+     , USER_NAME
+     , USER_MOBILE1
+  FROM USERS
+ WHERE USER_MOBILE1 IS NULL;
+
+
+-- 7. 연락처2가 '5'로 시작하는 사용자를 조회하시오.
+SELECT USER_NO
+     , USER_ID
+     , USER_NAME
+     , USER_MOBILE2
+  FROM USERS
+ WHERE USER_MOBILE2 LIKE '5%'; 
+
+
+-- 8. 구매 이력이 있는 사용자들의 이름, 제품명, 제품가격, 구매수량을 조회하시오.
+-- 구매 이력이 있다는 부분에서 내부조인이 사용된다는 의미를 가지고있다.
+-- 출력해야되는 칼럼이 2개이상의 테이블에 있다는 점에서 조인을 사용해야 한다는 것을 알 수 있다.
+SELECT U.USER_NAME
+     , B.PROD_NAME
+     , B.PROD_PRICE
+     , B.BUY_AMOUNT
+  FROM USERS U, BUYS B
+ WHERE U.USER_ID = B.USER_ID;
+ 
+
+-- 9. 제품카테고리별로 그룹화하여 제품카테고리, 구매횟수, 총구매수량을 조회하시오.
+SELECT PROD_CATEGORY
+     , COUNT(*) AS 구매횟수
+     , SUM(BUY_AMOUNT) AS 총구매수량
+  FROM BUYS
+ GROUP BY PROD_CATEGORY; 
+
+
+-- 10. 구매 이력이 있는 고객을 대상으로 어떤 고객이 어떤 제품을 구매했는지 알 수 있도록 고객명, 구매제품을 조회하시오.
+SELECT U.USER_NAME
+     , B.PROD_NAME
+  FROM USERS U, BUYS B
+ WHERE U.USER_ID = B.USER_ID;
+
+
+-- 11. 제품을 구매한 이력이 있는 고객아이디, 고객명, 총구매횟수를 조회하시오.
+SELECT U.USER_ID
+     , U.USER_NAME
+     , COUNT(*) AS 총구매횟수 -- 또는 구매할때마다 값을 구해줄수 있도록 COUNT(BUY_NO)를 주는 것도 가능하다.
+  FROM USERS U, BUYS B
+ WHERE U.USER_ID = B.USER_ID
+ GROUP BY U.USER_ID, U.USER_NAME;
+
+
+-- 12. 제품을 구매한 이력이 있는 고객명과 총 구매액을 조회하시오.
+SELECT USER_NAME
+     , SUM(PROD_PRICE) AS 총구매액
+  FROM USERS U, BUYS B
+ WHERE U.USER_ID = B.USER_ID
+ GROUP BY USER_NAME;
+
+
+-- 13. 구매 이력과 상관 없이 고객별 구매횟수를 조회하시오. 구매 이력이 없으면 구매횟수는 0으로 조회하시오.
+-- 구매이력과 상관없다라는 의미는 외부조인을 사용하라는 의미이다.
+SELECT U.USER_ID
+     , U.USER_NAME
+     , COUNT(B.BUY_NO) AS 구매횟수
+  FROM USERS U, BUYS B
+ WHERE U.USER_ID = B.USER_ID(+)
+ GROUP BY U.USER_ID, U.USER_NAME;
+
+SELECT U.USER_ID
+     , U.USER_NAME
+     , COUNT(B.BUY_NO) AS 구매횟수
+  FROM USERS U LEFT OUTER JOIN BUYS B
+    ON U.USER_ID = B.USER_ID
+ GROUP BY U.USER_ID, U.USER_NAME;
+
+-- 14. 구매 이력에 상관 없이 고객별 총 구매액을 조회하시오. 구매 이력이 없으면 총 구매액은 0으로 조회하시오.
+-- 구매액 : 제품가격 구매수량 
+SELECT U.USER_ID
+     , U.USER_NAME
+     , NVL(SUM(B.PROD_PRICE * B.BUY_AMOUNT),0) AS 총구매액
+  FROM USERS U, BUYS B
+ WHERE U.USER_ID = B.USER_ID(+)
+ GROUP BY U.USER_ID, U.USER_NAME;
+
+SELECT U.USER_ID
+     , U.USER_NAME
+     , NVL(SUM(B.PROD_PRICE * B.BUY_AMOUNT),0) AS 총구매액
+  FROM USERS U LEFT OUTER JOIN BUYS B
+    ON U.USER_ID = B.USER_ID
+ GROUP BY U.USER_ID, U.USER_NAME;
+
+
+-- 15. 카테고리가 '전자'인 제품을 구매한 고객명과 총 구매액을 조회하시오.
+SELECT U.USER_NAME
+     , SUM(B.PROD_PRICE * B.BUY_AMOUNT) AS 총구매액
+  FROM USERS U, BUYS B
+ WHERE U.USER_ID = B.USER_ID
+   AND B.PROD_CATEGORY = '전자'
+ GROUP BY U.USER_NAME;   
+
+SELECT U.USER_NAME
+     , SUM(B.PROD_PRICE * B.BUY_AMOUNT) AS 총구매액
+  FROM U.USER_ID INNER JOIN B.USER_ID
+    ON U.USER_ID = B.USER_ID
+ WHERE B.PROD_CATEGORY = '전자'
+ GROUP BY U.USER_NAME, U.USER_ID; -- GROUP BY절에서 USER_ID 또는 USER_NO를 추가해주면 동명이인의 구분 처리가 가능하다.    
+
+
+-- 16. 구매횟수가 2회 이상인 고객명과 구매횟수를 조회하시오.
+-- GROUP BY 이후에 구매횟수의 처리가 이루어져야하기 때문에 WHERE절이 아닌 HAVING절에서 처리하여야한다.
+SELECT U.USER_ID
+     , U.USER_NAME
+     , COUNT(B.BUY_NO) AS 총구매횟수
+  FROM USERS U, BUYS B
+ WHERE U.USER_ID = B.USER_ID
+ GROUP BY U.USER_ID, U.USER_NAME
+HAVING COUNT(B.BUY_NO) >= 2; 
+
+
+-- 17. USERS 테이블과 BUYS 테이블 각각 종속 관계를 확인하고 필요하다면 정규화하시오.
+-- 제품명 - 제품카테고리 - 제품가격은 종속관계에 있다.
+-- 위의 3개의 칼럼에는 PK로 사용할 만한 칼럼이 없기 때문에 인공키를 추가하여 PK를 만들어준다.
+
+-- 1) BUYS 테이블의 PROD_NAME, PROD_CATEGORY, PROD_PRICE 칼럼을 이용하여 PRODUCT 테이블을 생성하시오.
+CREATE TABLE PRODUCT    -- CREATE TABLE 새로운테이블명
+    AS (SELECT DISTINCT PROD_NAME   -- AS (SELECT 추가할 칼럼,...
+             , PROD_CATEGORY
+             , PROD_PRICE
+          FROM BUYS);             -- FROM 기존테이블명;
+    
+-- 2) PRODUCT 테이블에 제품번호(PROD_NO) 칼럼을 추가하다.
+ALTER TABLE PRODUCT ADD PROD_NO NUMBER;
+
+-- 3) 시퀀스를 생성하고 제품번호에 입력해준다.
+CREATE SEQUENCE PRODUCT_SEQ
+INCREMENT BY 1
+START WITH 1
+NOMAXVALUE
+NOCYCLE
+NOCACHE;
+
+-- 제품명 : 운동화, 모니터, 메모리, 책, 노트북, 청바지
+UPDATE PRODUCT SET PROD_NO = PRODUCT_SEQ.NEXTVAL WHERE PROD_NAME = '운동화';
+UPDATE PRODUCT SET PROD_NO = PRODUCT_SEQ.NEXTVAL WHERE PROD_NAME = '모니터';
+UPDATE PRODUCT SET PROD_NO = PRODUCT_SEQ.NEXTVAL WHERE PROD_NAME = '메모리';
+UPDATE PRODUCT SET PROD_NO = PRODUCT_SEQ.NEXTVAL WHERE PROD_NAME = '책';
+UPDATE PRODUCT SET PROD_NO = PRODUCT_SEQ.NEXTVAL WHERE PROD_NAME = '노트북';
+UPDATE PRODUCT SET PROD_NO = PRODUCT_SEQ.NEXTVAL WHERE PROD_NAME = '청바지';
+
+-- 4) 제품번호(PROD_NO)를 기본키로 설정한다.
+ALTER TABLE PRODUCT ADD CONSTRAINT PRODUCT_PK PRIMARY KEY(PROD_NO);
+
+-- 5) BUYS 테이블에 제품번호(PROD_NO)칼럼을 추가한다.
+-- 테이블간의 연결
+ALTER TABLE BUYS ADD PROD_NO NUMBER;
+
+-- 6) BUYS 테이블에 제품번호(PROD_NO)를 입력한다.
+UPDATE BUYS B SET B.PROD_NO = (SELECT P.PROD_NO FROM PRODUCT P WHERE P.PROD_NAME = '운동화') WHERE B.PROD_NAME = '운동화';  
+UPDATE BUYS B SET B.PROD_NO = (SELECT P.PROD_NO FROM PRODUCT P WHERE P.PROD_NAME = '모니터') WHERE B.PROD_NAME = '모니터';  
+UPDATE BUYS B SET B.PROD_NO = (SELECT P.PROD_NO FROM PRODUCT P WHERE P.PROD_NAME = '메모리') WHERE B.PROD_NAME = '메모리';  
+UPDATE BUYS B SET B.PROD_NO = (SELECT P.PROD_NO FROM PRODUCT P WHERE P.PROD_NAME = '책') WHERE B.PROD_NAME = '책';  
+UPDATE BUYS B SET B.PROD_NO = (SELECT P.PROD_NO FROM PRODUCT P WHERE P.PROD_NAME = '노트북') WHERE B.PROD_NAME = '노트북';  
+UPDATE BUYS B SET B.PROD_NO = (SELECT P.PROD_NO FROM PRODUCT P WHERE P.PROD_NAME = '청바지') WHERE B.PROD_NAME = '청바지';  
+
+-- 7) BUYS 테이블의 제품번호(PROD_NO)를 PRODUCT 테이블의 제품번호(PROD_NO)를 참조하는 외래키로 설정한다.
+ALTER TABLE BUYS ADD CONSTRAINT BUYS_PRODUCT_FK FOREIGN KEY (PROD_NO) REFERENCES PRODUCT(PROD_NO);
+
+-- 8) BUYS 테이블에서 PROD_NAME, PROD_CATEGORY, PROD_PRICE 칼럼을 삭제한다.
+ALTER TABLE BUYS DROP COLUMN PROD_NAME;
+ALTER TABLE BUYS DROP COLUMN PROD_CATEGORY;
+ALTER TABLE BUYS DROP COLUMN PROD_PRICE;
+
+
+
+SELECT *
+  FROM PRODUCT;
+
+DROP TABLE PRODUCT;
+
+
+
+-- 위의 정규화작업을 통해 PRODUCT 테이블을 새로 구성하고 수정, 삭제 등의 작업이 끝나면 이전에 작업했던 문제들의 쿼리문들이 작동이 제대로 안될 것이다.
+
+
+
